@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>演示：Revealjs一个专门用来做HTML演示文稿的框架</title>
+	<link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/moon.css">
+</head>
+<body>
+	<div class="reveal">
+        <div class="slides">
+            <section>
+                <h2>代码优化基本原则</h2>
+                <ul>
+                    <li class="fragment">易读性优先</li>
+                    <li class="fragment">如果不是性能瓶颈，就不要为了性能而改写代码</li>
+                    <li class="fragment">复杂性守恒原则：无论你怎么写代码，复杂性都是不会消失的</li>
+                    <li class="fragment">推论：如果逻辑很复杂，那么代码看起来就应该是复杂的。如果逻辑很简单，代码看起来就应该是简单的。</li>
+                </ul>
+            </section>
+            <section>
+                <section>
+                    <h2>命名</h2>
+                    <p><b>程序员三大难题</b></p>
+                    <ul>
+                        <li class="fragment">变量命名</li>
+                        <li class="fragment">缓存失效</li>
+                        <li class="fragment">循环边界</li>
+                    </ul>
+                    <p class="fragment">可见变量命名的重要性。</p>
+                </section>
+                <section>
+                    <p>一、注意词性</p>
+                    <ul>
+                        <li>普通变量/属性用「名词」</li>
+                    </ul>
+                    <div class="highlight"><pre><code class="language-text"><span></span>var person = {
+      name: 'Frank'
+  }
+  var student = {
+      grade: 3,
+      class: 2
+  }
+
+</code></pre>
+                    </div>
+                </section>
+                <section>
+                    <ul>
+                        <ul>
+                            <li>bool变量/属性用「形容词」或者「be动词」或者「情态动词」或者「hasX」</li>
+                        </ul>
+                    </ul>
+                    <div class="highlight"><pre><code class="language-text"><span></span>var person = {
+      dead: false, // 如果是形容词，前面就没必要加 is，比如isDead 就很废话
+      canSpeak: true, //情态动词有 can、should、will、need 等，情态动词后面接动词
+      isVip: true, // be 动词有 is、was 等，后面一般接名词
+      hasChildren: true, // has 加名词
+  }
+</code></pre>
+                    </div>
+                </section>
+                <section>
+                    <ul>
+                        <ul>
+                            <li>回调、钩子函数用「介词」开头，或用「动词的现在完成时态」</li>
+                        </ul>
+                    </ul>
+                    <div class="highlight"><pre><code class="language-text"><span></span>var person = {
+      beforeDie(){},
+      afterDie(){},
+      // 或者
+      willDie(){}
+      dead(){}
+  }
+  button.addEventListener('click', onButtonClick)
+  var component = {
+      beforeCreate(){},
+      created(){},
+      beforeMount(){},
+      mounted(){},
+      beforeUpdate(){},
+      updated(){},
+      activated(){},
+      deactivated(){},
+      beforeDestroy(){},
+      destroyed(){},
+      errorCaptured(){}
+  }
+</code></pre>
+                    </div>
+                </section>
+                <section>
+                    <ul>
+                        <ul>
+                            <li>容易混淆的地方加前缀</li>
+                        </ul>
+                    </ul>
+                    <div class="highlight"><pre><code class="language-text"><span></span>div1.classList.add('active') // DOM 对象
+  div2.addClass('active') // jQuery 对象
+  不如改成
+  domDiv1 或 elDiv1.classList.add('active')
+  $div2.addClass('active')
+</code></pre>
+                    </div>
+                </section>
+            </section>
+            <section>
+                <section>
+                    <h2>二、注意一致性</h2>
+                </section>
+                <section>
+                    <ul>
+                        <li class="fragment">介词一致性<br>如果你使用了 before + after，那么就在代码的所有地方都坚持使用<br>如果你使用了 before + 完成时，那么就坚持使用<br>如果你改来改去，就「不一致」了，不一致将导致「不可预测」
+                        </li>
+                        <li  class="fragment">顺序一致性<br>比如 updateContainerWidth 和 updateHeightOfContainer 的顺序就令人很别扭，同样会引发「不可预测」
+                        </li>
+                    </ul>
+                </section>
+                <section>
+                    <li  class="fragment">表里一致性<br>函数名必须完美体现函数的功能，既不能多也不能少。<br>比如</li>
+                    <li class="fragment"><pre><code class="language-text"><span></span>function getSongs(){
+      return $.get('/songs).then((response){
+          div.innerText = response.songs
+      })
+  }
+
+</code></pre>
+                        <p>就违背了表里一致性，getSongs 表示获取歌曲，并没有暗示这个函数会更新页面，但是实际上函数更新了 div，这就是表里不一，正确的写法是</p>
+                    </li>
+                </section>
+                <section>
+                    <div class="fragment">
+                                <li>要么纠正函数名</li>
+                        <div class="highlight"><pre><code class="language-text"><span></span>function getSongsAndUpdateDiv(){
+      return $.get('/songs).then((response){
+          div.innerText = response.songs
+      })
+  }
+</code></pre>
+                        </div>
+                    </div>
+                    <div class="fragment">
+                        <li>要么写成两个函数</li>
+                        <div class="highlight"><pre><code class="language-text"><span></span>function getSongs(){
+      return $.get('/songs)
+  }
+  function updateDiv(songs){
+      div.innerText = response.songs
+  }
+  getSongs().then((response)=&gt;{
+      updateDiv(response.songs)
+  })
+</code></pre>
+                        </div>
+                    </div>
+
+                </section>
+                <section>
+                    <h2>时间一致性</h2>
+                    <ul>
+                        <li>
+                            有可能随着代码的变迁，一个变量的含义已经不同于它一开始的含义了，这个时候你需要及时改掉这个变量的名字。
+                        </li>
+                        <li>
+                            这一条是最难做到的，因为写代码容易，改代码难。如果这个代码组织得不好，很可能会出现牵一发而动全身的情况（如全局变量就很难改）
+                        </li>
+                    </ul>
+                </section>
+            </section>
+            <section>
+                <section>
+                    <h2 class="fragment">改代码</h2>
+                    <div class="fragment">
+                        <p>如果你的代码有单元测试，那么改起来就很放心。如果没有单元测试，就需要用「小步快跑」的策略来修改。</p>
+                        <p>小步快跑的意思是说，每次只修改一点点，测试通过后，再修改一点点，再测试，再修改一点点……如此反复。</p>
+                    </div>
+                </section>
+                <section>
+                    <h2>使用函数来改代码</h2>
+                    <p>步骤：</p>
+                    <ol>
+                        <li>将一坨代码放到一个函数里</li>
+                        <li>将代码依赖的外部变量作为参数</li>
+                        <li>将代码的输出作为函数的返回值</li>
+                        <li>给函数取一个合适的名字</li>
+                        <li>调用这个函数并传入参数</li>
+                        <li>这个函数里的代码如果超过 5 行，则依然有优化的空间，请回到第 1 步</li>
+                    </ol>
+                </section>
+                <section>
+                    <h2>表驱动编程</h2>
+                </section>
+        	</section>
+            <section>
+                <section>
+                    <h2>bad smell（坏味道）</h2>
+                    <p>有些代码可以用，但是很「臭」。</p>
+                </section>
+                <section>
+                    <p class="fragment">哪些代码是有坏味道的</p>
+                    <ul>
+                        <li class="fragment">表里不一的代码</li>
+                        <li class="fragment">过时的注释</li>
+                        <li class="fragment">逻辑很简单，但是看起来很复杂的代码</li>
+                        <li class="fragment">重复的代码</li>
+                        <li class="fragment">相似的代码</li>
+                        <!--<li class="fragment">总是一起出现的代码</li>-->
+                    </ul>
+                </section>
+            </section>
+            <section>
+                <h2>破窗效应</h2>
+                <p class="fragment">
+                    此理论认为环境中的不良现象如果被放任存在，会诱使人们仿效，甚至变本加厉。一幢有少许破窗的建筑为例，如果那些窗不被修理好，可能将会有破坏者破坏更多的窗户。最终他们甚至会闯入建筑内，如果发现无人居住，也许就在那里定居或者纵火。一面墙，如果出现一些涂鸦没有被清洗掉，很快的，墙上就布满了乱七八糟、不堪入目的东西；一条人行道有些许纸屑，不久后就会有更多垃圾，最终人们会视若理所当然地将垃圾顺手丢弃在地上。这个现象，就是犯罪心理学中的破窗效应。
+                </p>
+                <p class="fragment">程序员要做到：只要是经过你手的代码，都会比之前好一点。</p>
+            </section>
+            <section>
+                <h1>谢谢</h1>
+            </section>
+        </div>
+    </div>
+<script src="js/reveal.js"></script>
+<script>
+    Reveal.initialize({
+	// 是否在右下角展示控制条
+	controls: true,
+	// 是否显示演示的进度条
+    progress: true,
+
+    // 是否显示当前幻灯片的页数
+    slideNumber: 'c/t',
+
+    // 是否将每个幻灯片改变加入到浏览器的历史记录中去
+    history: false,
+
+    // 是否启用键盘快捷键来导航
+    keyboard: true,
+
+    // 是否启用幻灯片的概览模式,开启后，可以使用ESC键查看幻灯片概览
+    overview: true,
+
+    // 是否将幻灯片垂直居中
+    center: true,
+
+    // 是否在触屏设备上启用触摸导航
+    touch: true,
+
+    // 是否循环演示
+    loop: false,
+
+    // 是否将演示的方向变成 RTL
+    rtl: false,
+
+    // 全局开启和关闭碎片
+    fragments: true,
+
+    // 标识演示文稿是否在嵌入模式中运行，即包含在屏幕的有限部分中的
+    embedded: false,
+
+    // 标识当问号键被点击的时候是否应该显示一个帮助的覆盖层
+    help: true,
+
+    //  两个幻灯片之间自动切换的时间间隔（毫秒），当设置成 0 的时候则禁止自动切换，该值可以被幻灯片上的 ` data-autoslide` 属性覆盖
+    autoSlide: 0,
+
+    // 当遇到用户输入的时候停止切换
+    autoSlideStoppable: true,
+
+    // 是否启用通过鼠标滚轮来导航幻灯片
+    mouseWheel: true,
+
+    //  是否在移动设备上隐藏地址栏
+    hideAddressBar: true,
+
+    // 是否在一个弹出的 iframe 中打开幻灯片中的链接
+    previewLinks: false,
+
+    // 切换过渡效果
+    transition: 'default', // none/fade/slide/convex/concave/zoom
+
+    // 过渡速度
+    transitionSpeed: 'default', // default/fast/slow
+
+    // 全屏幻灯片背景的过渡效果
+    backgroundTransition: 'default', // none/fade/slide/convex/concave/zoom
+
+    // 除当前可见的之外的幻灯片数量
+    viewDistance: 3,
+
+    // 视差背景图片
+    parallaxBackgroundImage: '', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+
+    // 视差背景尺寸
+    parallaxBackgroundSize: '', // CSS syntax, e.g. "2100px 900px"
+
+    // 移动视差背景（水平和垂直）滑动变化的数量, 例如100
+    parallaxBackgroundHorizontal: '',
+    parallaxBackgroundVertical: ''
+});
+</script>
+</body>
+</html>
